@@ -1,0 +1,50 @@
+name: Weekly Tech Briefing
+
+on:
+  # Runs every Monday at 8:00 AM UTC
+  schedule:
+    - cron: '0 8 * * 1'
+  # Allows manual triggering from the GitHub Actions tab
+  workflow_dispatch:
+
+jobs:
+  run_agent_pipeline:
+    # Use an Ubuntu runner for the environment
+    runs-on: ubuntu-latest
+    
+    # Define environment variables using the Repository Secrets
+    env:
+      # Secrets for News/Reddit Agents
+      NEWSAPI_KEY: ${{ secrets.NEWSAPI_KEY }}
+      REDDIT_CLIENT_ID: ${{ secrets.REDDIT_CLIENT_ID }}
+      REDDIT_CLIENT_SECRET: ${{ secrets.REDDIT_CLIENT_SECRET }}
+      
+      # Secrets for GitHub Persistence in Root Agent
+      TOKEN: ${{ secrets.TOKEN }}
+      OWNER: ${{ secrets.OWNER }}
+      # Hardcode the repo name since we know it's 'VectorBrief'
+      GITHUB_REPO: VectorBrief 
+      
+    steps:
+      # Checkout the repository code
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      # Set up Python environment
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11' # Use a modern Python version
+
+      # Install required Python dependencies
+      - name: Install Dependencies
+        run: |
+          # Install the Google Agent Development Kit and other libraries
+          pip install google-adk
+          pip install requests feedparser praw
+
+      # Execute the Root Coordinator Agent
+      - name: Run Weekly Briefing Pipeline
+        run: |
+          # The ADK command to run the RootCoordinator, invoking its main tool
+          python -m google.adk run --entrypoint RootCoordinator --arg artificial_intelligence_and_vector_databases 
